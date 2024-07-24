@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/philosophers",
-            "args": [],
+            "args": ["5" "6" "8" "3" "2"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -20,16 +20,16 @@
                 }
             ],
             "preLaunchTask": "build",
-            "args": ["${input:args}"]
+            // "args": ["${input:args}"]
         }
     ],
-    "inputs": [
-        {
-            "id": "args",
-            "type": "promptString",
-            "description": "Enter command-line arguments separated by space"
-        }
-    ]
+    // "inputs": [
+    //     {
+    //         "id": "args",
+    //         "type": "promptString",
+    //         "description": "Enter command-line arguments separated by space"
+    //     }
+    // ]
 }
 
 	// Use IntelliSense to learn about possible attributes.
