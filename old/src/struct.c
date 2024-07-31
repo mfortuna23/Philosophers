@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/24 11:01:12 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/07/25 13:38:34 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/07/31 13:42:44 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void	delete_node(t_phil **head)
 	return ;
 }
 
-void	create_struct(t_phil **head, t_data data)
+void	create_struct(t_phil **head, t_data data, pthread_mutex_t *write_in)
 {
 	int	i;
 
@@ -50,17 +50,17 @@ void	create_struct(t_phil **head, t_data data)
 	*head = NULL;
 	while (i <= data.n_phil)
 	{
-		add_node(head, i, data);
+		add_node(head, i, data, write_in);
 		i++;
 	}
 }
 
-void	add_node(t_phil **head, int nbr, t_data data)
+void	add_node(t_phil **head, int nbr, t_data data, pthread_mutex_t *write_in)
 {
 	t_phil	*last;
 	t_phil	*new_node;
 
-	new_node = create_node(nbr, data);
+	new_node = create_node(nbr, data, write_in);
 	if (*head == NULL)
 	{
 		*head = new_node;
@@ -78,7 +78,7 @@ void	add_node(t_phil **head, int nbr, t_data data)
 	}
 }
 
-t_phil	*create_node(int nbr, t_data data)
+t_phil	*create_node(int nbr, t_data data, pthread_mutex_t *write_in)
 {
 	t_phil	*node;
 
@@ -86,6 +86,7 @@ t_phil	*create_node(int nbr, t_data data)
 	node->data = data;
 	node->next = NULL;
 	node->prev = NULL;
+	node->write_in = write_in;
 	node->id = nbr;
 	node->left_fork = true;
 	node->rigth_fork = true;

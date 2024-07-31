@@ -5,106 +5,64 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/23 14:24:42 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/07/30 11:46:11 by mfortuna         ###   ########.fr       */
+/*   Created: 2024/07/31 14:13:55 by mfortuna          #+#    #+#             */
+/*   Updated: 2024/07/31 14:44:27 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../philosophers.h"
 
-int	get_nbr(char *s)
+int	get_number(char *nbr)
 {
-	int		i;
-	long	nbr;
+	int i;
+	long n;
 
-	i = -1;
-	nbr = 0;
-	while (s[++i])
+	i = 0;
+	n = 0;
+	while (nbr[i] == '-' || nbr[i] == '+')
 	{
-		if ((s[i] == '-' || s[i] == '+') && i == 0)
-		{
-			if (s[i] == '-')
-				return (-1);
-		}
-		else if (s[i] < '0' || s[i] > '9')
+		if (nbr[i] == '-')
 			return (-1);
-		else
-			nbr = (nbr * 10) + (s[i] - '0');
-		if (nbr > 2147483647)
-			return (-1);
+		i++;
 	}
-	return (nbr);
+	while (nbr[i])
+	{
+		if (nbr[i] < '0' && nbr[i] > '9')
+			return (-1);
+		n = (n * 10) + (nbr[i] - '0');
+		i++;
+	}
+	if (i > 2147483647)
+		return (-1);
+	return (n);
 }
 
-int	ft_get_data(t_data *data, int argc, char **argv)
+int	create_data(t_data *data, int argc, char **argv)
 {
-	data->n_phil = get_nbr(argv[1]);
-	if (data->n_phil < 1)
-		return (-1);
-	data->t_die = get_nbr(argv[2]);
-	if (data->t_die < 0)
-		return (-1);
-	data->t_eat = get_nbr(argv[3]);
-	if (data->t_eat < 0)
-		return (-1);
-	data->t_sleep = get_nbr(argv[4]);
-	if (data->t_sleep < 0)
-		return (-1);
+	data->n_phil = get_number(argv[1]);
+	data->t_die = get_number(argv[2]);
+	data->t_eat = get_number(argv[3]);
+	data->t_sleep = get_number(argv[4]);
 	if (argc == 6)
 	{
-		data->x_eat = get_nbr(argv[5]);
+		data->x_eat = get_number(argv[5]);
 		if (data->x_eat < 0)
 			return (-1);
 	}
+	if (data->n_phil < 0 || data->t_die < 0 || data->t_eat < 0 || data->t_sleep < 0)
+		return (-1);
 	return (0);
 }
 
-void	start(t_phil **head, t_data data)
-{
-	pthread_t	*phill;
-	t_phil		*node;
-	int i;
-
-	i = 0;
-	node = (*head);
-	phill = malloc((data.n_phil + 1) * sizeof(phill));
-	if (!phill)
-		return ;
-	while (i < (node->data.n_phil))
-	{
-		pthread_create(&phill[i], NULL, &phil_routine, (void *)node);
-		node = node->next;
-	}
-	i = 0;
-	node = (*head);
-	while (i < (node->data.n_phil))
-	{
-		pthread_detach(phill[i]);
-		node = node->next;
-	}
-	free(phill);
-}
-
-// arguments:
-// n of philosophers
-// time to die
-// time to eat
-// time to sleep
-// optional number of times a philosopher has to eat - if not specified, the program only stops when a philosopher dies
 int	main(int argc, char **argv)
 {
 	t_data	data;
-	t_phil	*head;
-
-	head = NULL;
 	if (argc > 4 && argc < 7)
 	{
-		if (ft_get_data(&data, argc, argv) < 0)
-			return (printf("wrong input\n"));
-		create_struct(&head, data);
-		start(&head, data);
-		delete_stack(&head);
+		if (create_data(&data, argc, argv) < 0)
+			return (-1);
+		printf("n_phill : %i\nt_die : %i\nt_eat : %i\nt_sleep : %i\n", data.n_phil, data.t_die, data.t_eat, data.t_sleep);
 		return (0);
 	}
-	return (printf("invalid number of arguments\n"));
+	printf("invalid number of arguments \n");
 }
