@@ -6,20 +6,23 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/25 10:08:30 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/07/26 12:26:46 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/07/30 11:52:45 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../philosophers.h"
 
-void	phil_routine(t_phil *phil)
+void	*phil_routine(void *node)
 {
-	if (phil->data.n_phil % 2 == 0)
+	int i = 0;
+	t_phil *phil;
+	phil = (t_phil *)node;
+	while (i < 6)
 	{
-		if (phil->id % 2 != 0)
-		{
-			phil->prev->rigth_fork = false;
-			phil->next->left_fork = false;
-		}
+		printf("philosopher %i is eating\n", phil->id);
+		printf("philosopher %i is sleeping\n", phil->id);
+		printf("philosopher %i is thinking\n", phil->id);
+		i++;
 	}
+	return (NULL);
 }

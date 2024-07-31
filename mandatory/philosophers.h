@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 11:20:23 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/07/25 13:37:44 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/07/30 11:45:32 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,6 @@ void	add_node(t_phil **head, int nbr, t_data data);
 t_phil	*create_node(int nbr, t_data data);
 void	delete_node(t_phil **head);
 void	delete_stack(t_phil **head);
-
-
+void	*phil_routine(void *node);
 
 #endif

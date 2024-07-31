@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/23 14:24:42 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/07/25 13:37:58 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/07/30 11:46:11 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,32 @@ int	ft_get_data(t_data *data, int argc, char **argv)
 	return (0);
 }
 
+void	start(t_phil **head, t_data data)
+{
+	pthread_t	*phill;
+	t_phil		*node;
+	int i;
+
+	i = 0;
+	node = (*head);
+	phill = malloc((data.n_phil + 1) * sizeof(phill));
+	if (!phill)
+		return ;
+	while (i < (node->data.n_phil))
+	{
+		pthread_create(&phill[i], NULL, &phil_routine, (void *)node);
+		node = node->next;
+	}
+	i = 0;
+	node = (*head);
+	while (i < (node->data.n_phil))
+	{
+		pthread_detach(phill[i]);
+		node = node->next;
+	}
+	free(phill);
+}
+
 // arguments:
 // n of philosophers
 // time to die
@@ -76,6 +102,7 @@ int	main(int argc, char **argv)
 		if (ft_get_data(&data, argc, argv) < 0)
 			return (printf("wrong input\n"));
 		create_struct(&head, data);
+		start(&head, data);
 		delete_stack(&head);
 		return (0);
 	}
