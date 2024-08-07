@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/02 19:36:29 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/02 19:37:14 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/08/07 11:22:01 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,4 +53,26 @@ void	create_struct(t_phil **head, t_data *data)
 		add_last(head, data, i + 1);
 		i++;
 	}
+}
+void	delete_last(t_phil **head)
+{
+	t_phil	*last;
+	t_phil	*del;
+
+	last = (*head);
+	while (last->next->next != NULL)
+		last = last->next;
+	del = last->next;
+	last->next = NULL;
+	free (del);
+	return ;
+}
+
+
+void	clean_struct(t_phil **head)
+{
+	while ((*head)->next != NULL)
+		delete_last(head);
+	free(*head);
+	return ;
 }
