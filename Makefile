@@ -6,7 +6,7 @@
 #    By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/21 11:05:07 by mfortuna          #+#    #+#              #
-#    Updated: 2024/08/02 19:39:40 by mfortuna         ###   ########.fr        #
+#    Updated: 2024/08/08 16:14:12 by mfortuna         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,7 @@ RM				= rm -rf
 NAME			= philosophers
 MANDATORY		= mandatory/
 SRC_M			= $(MANDATORY)src/
-SRC				= $(addprefix $(SRC_M), main.c struct.c)
+SRC				= $(addprefix $(SRC_M), main.c struct.c utils.c)
 OBJS			= $(SRC:%.c=%.o)
 AR				= ar rc
 MAKE			= make -C
