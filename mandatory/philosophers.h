@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 11:20:23 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/08 18:56:51 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/08/09 11:13:32 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ typedef struct s_phil
 {
 	int					id;
 	int					t_eaten;
+	long int			lastmeal;
 	pthread_mutex_t		*r_fork;
 	pthread_mutex_t		*l_fork;
 	struct s_phil		*next;

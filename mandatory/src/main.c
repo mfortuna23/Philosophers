@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/31 14:13:55 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/08 18:57:17 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/08/09 14:12:02 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,8 @@ int	create_data(t_data *data, int argc, char **argv)
 		return (42);
 	if (mutex_create(data) > 0)
 		return (42);
+	if (argc == 5)
+		data->x_eat = -1;
 	data->died = 0;
 	return (0);
 }
@@ -105,61 +107,92 @@ long int	nowtime(t_phil *phil)
 	return (mil);
 }
 
-void	phil_dead(t_phil *phil)
+void	phil_dead(t_phil *phil, int code)
 {
 	pthread_mutex_lock(&phil->data->w);
 	pthread_mutex_lock(&phil->data->dead);
-	printf("%ld\t%i has died\n",nowtime(phil), phil->id);
+	if (code == 1)
+		printf("%ld\t%i has died\n",nowtime(phil), phil->id);
 	phil->data->died = 1;
 	pthread_mutex_unlock(&phil->data->dead);
 }
-
-void	action(t_phil *phil, char *act, int time)
+void	write_now(t_phil *phil, char *act)
 {
+	if (get_info(phil->data->dead, phil->data->died) == 1)
+		return ;
 	if (ft_strcomp("is eating", act) == 0)
 	{
 		pthread_mutex_lock(phil->l_fork);
-		if (nowtime(phil) > (lastmeal + phil->data->t_die))
-			phil_dead(phil);
+		if (nowtime(phil) >= (phil->lastmeal + (phil->data->t_die / 1000)))
+			return (phil_dead(phil, 1));
+		if (get_info(phil->data->dead, phil->data->died) == 1)
+			return ;
 		pthread_mutex_lock(phil->r_fork);
+		if (nowtime(phil) >= (phil->lastmeal + (phil->data->t_die / 1000)))
+			return (phil_dead(phil, 1));
+		if (get_info(phil->data->dead, phil->data->died) == 1)
+			return ;
 		pthread_mutex_lock(&phil->data->w);
 		printf("%ld\t%i has taken a fork\n",nowtime(phil), phil->id);
 		printf("%ld\t%i %s\n",nowtime(phil), phil->id, act);
 		pthread_mutex_unlock(&phil->data->w);
-		usleep(time);
-		pthread_mutex_unlock(phil->l_fork);
-		pthread_mutex_unlock(phil->r_fork);
 		return ;
 	}
 	pthread_mutex_lock(&phil->data->w);
 	printf("%ld\t%i %s\n",nowtime(phil), phil->id, act);
 	pthread_mutex_unlock(&phil->data->w);
+}
+void	action(t_phil *phil, char *act, int time)
+{
+	if (get_info(phil->data->dead, phil->data->died) == 1)
+		return ;
+	if (ft_strcomp("is eating", act) == 0)
+	{
+		write_now(phil, act);
+		if (get_info(phil->data->dead, phil->data->died) == 1)
+		{
+			pthread_mutex_unlock(phil->l_fork);
+			pthread_mutex_unlock(phil->r_fork);
+			return ;
+		}
+		usleep(time);
+		pthread_mutex_unlock(phil->l_fork);
+		pthread_mutex_unlock(phil->r_fork);
+		return ;
+	}
+	write_now(phil, act);
+	if (nowtime(phil) >= (phil->lastmeal + (phil->data->t_die / 1000)))
+		return (phil_dead(phil, 1));
+	if (get_info(phil->data->dead, phil->data->died) == 1)
+		return ;
 	usleep(time);
 }
 
 void	phil_even(t_phil *phil)
 {
-	long int	lastmeal;
-
 	while (get_info(phil->data->dead, phil->data->died) == 0)
 	{
 		if (phil->id % 2 != 0)
 			action(phil, "is eating", phil->data->t_eat);
 		else
 		{
-			usleep(10);
+			usleep(phil->data->t_eat / 2);
 			action(phil, "is eating", phil->data->t_eat);
 		}
 		phil->t_eaten++;
-		lastmeal = nowtime(phil);
+		phil->lastmeal = nowtime(phil);
 		if (phil->data->x_eat > 0 && phil->data->x_eat == phil->t_eaten)
+		{
+			pthread_mutex_lock(&phil->data->eat);
 			phil->data->eaten++;
+			pthread_mutex_unlock(&phil->data->eat);
+		}
 		if (phil->data->eaten == phil->data->x_eat)
-			return ;
+			return (phil_dead(phil, 0));
 		action(phil, "is sleeping", phil->data->t_sleep);
-		if (nowtime(phil) > (lastmeal + phil->data->t_die))
-			phil_dead(phil);
-		action(phil, "is thinking", 0);
+		if (nowtime(phil) > (phil->lastmeal + (phil->data->t_die / 1000)))
+			phil_dead(phil, 1);
+		action(phil, "is thinking", 1);
 	}
 }
 
@@ -171,6 +204,12 @@ void	*routine(void *anything)
 	if (phil->id == phil->data->n_phil)
 	{
 		gettimeofday(&phil->data->start, NULL);
+		if (phil->id == 1)
+		{
+			usleep(phil->data->t_die);
+			phil_dead(phil, 1);
+			return (NULL);
+		}
 		pthread_mutex_unlock(&phil->data->time);
 		usleep(1);
 	}
@@ -179,11 +218,20 @@ void	*routine(void *anything)
 		pthread_mutex_lock(&phil->data->time);
 		pthread_mutex_unlock(&phil->data->time);
 	}
-	// if (phil->data->n_phil % 2 == 0)
 	phil_even(phil);
-	// else
-	// 	phil_odd(phil, phil->data->n_phil, phil->data->start, phil->data->now);
 	return (NULL);
+}
+
+void	murder_all(t_data *data)
+{
+	int i;
+
+	i = 0;
+	while (i < data->n_phil)
+	{
+		pthread_detach(data->phil[i]);
+		i++;
+	}
 }
 
 void	create_phils(t_data data)
@@ -207,6 +255,8 @@ void	create_phils(t_data data)
 	while (i < data.n_phil)
 	{
 		pthread_join(data.phil[i], NULL);
+		if (data.died == 1)
+			return (murder_all(&data));
 		i++;
 	}
 	clean_struct(&head);
