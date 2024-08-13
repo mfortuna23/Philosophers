@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/21 11:20:23 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/09 11:13:32 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/08/13 13:58:29 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,6 @@ void	add_last(t_phil **head, t_data *data, int id);
 t_phil	*create_node(t_data *data, int id);
 void	clean_struct(t_phil **head);
 void	delete_last(t_phil **head);
-int	ft_strcomp(const char *s1, const char *s2);
-
+int		ft_strcomp(const char *s1, const char *s2);
+int		ft_stop(t_phil *phil);
 #endif
