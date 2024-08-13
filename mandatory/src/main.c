@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/31 14:13:55 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/13 16:35:12 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/08/13 19:06:35 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,34 +108,29 @@ long int	nowtime(t_phil *phil)
 	return (mil);
 }
 
-void	phil_dead(t_phil *phil, int code)
+int	phil_dead(t_phil *phil, int code)
 {
 	if (get_info(phil->data->dead, phil->data->died) == 1)
-		return ;
+		return (1);
 	pthread_mutex_lock(&phil->data->w);
 	pthread_mutex_lock(&phil->data->dead);
 	if (code == 1)
 		printf("%ld\t%i has died\n",nowtime(phil), phil->id);
 	phil->data->died = 1;
 	pthread_mutex_unlock(&phil->data->dead);
+	return (1);
 }
 
 int	ft_stop(t_phil *phil)
 {
 	if (nowtime(phil) >= (phil->lastmeal + (phil->data->t_die / 1000)))
-	{
-		phil_dead(phil, 1);
-		return (1);
-	}
+		return (phil_dead(phil, 1));
 	if (get_info(phil->data->dead, phil->data->died) == 1)
 		return (1);
 	if (get_info(phil->data->eat, phil->data->x_eat) > 0)
 	{
 		if (get_info(phil->data->eat, phil->data->eaten) == phil->data->n_phil)
-		{
-			phil_dead(phil, 0);
-				return (1);
-		}
+			return (phil_dead(phil, 0));
 	}
 	return (0);
 }
@@ -170,19 +165,21 @@ void	write_now(t_phil *phil, char *act)
 	pthread_mutex_lock(&phil->data->w);
 	printf("%ld\t%i %s\n",nowtime(phil), phil->id, act);
 	pthread_mutex_unlock(&phil->data->w);
+	return ;
 }
-void	new_sleep(t_phil *phil, int time)
+int	new_sleep(t_phil *phil, int time)
 {
 	while (nowtime(phil) < time)
 	{
 		if (ft_stop(phil) == 1)
-			return ;
+			return (1);
 	}
+	return(0);
 }
-void	action(t_phil *phil, char *act, int time)
+int	action(t_phil *phil, char *act, int time)
 {
 	if (ft_stop(phil) == 1)
-		return ;
+		return (1);
 	if (ft_strcomp("is eating", act) == 0)
 	{
 		write_now(phil, act);
@@ -191,49 +188,57 @@ void	action(t_phil *phil, char *act, int time)
 		{
 			pthread_mutex_unlock(phil->l_fork);
 			pthread_mutex_unlock(phil->r_fork);
-			return ;
+			return (1);
 		}
 		new_sleep(phil, (time /1000) + nowtime(phil));
 		pthread_mutex_unlock(phil->l_fork);
 		pthread_mutex_unlock(phil->r_fork);
 		phil->t_eaten++;
+		pthread_mutex_lock(&phil->data->w);
+		printf("%i comeu %ix!!!!!\n", phil->id, (int)phil->t_eaten);
+		pthread_mutex_unlock(&phil->data->w);
 		phil->lastmeal = nowtime(phil);
-		return ;
+		return (0);
 	}
 	write_now(phil, act);
 	if (ft_stop(phil) == 1)
-		return ;
+		return (1);
 	if (nowtime(phil) + (time / 1000) >= (phil->lastmeal + (phil->data->t_die / 1000)))
 	{
 		new_sleep(phil, (phil->lastmeal + (phil->data->t_die / 1000)));
-		return (phil_dead(phil, 1));
+		phil_dead(phil, 1);
+		return (1);
 	}
-	new_sleep(phil, (time / 1000) + nowtime(phil));
+	return(new_sleep(phil, (time / 1000) + nowtime(phil)));
 }
 
-void	phil_even(t_phil *phil)
+int	phil_even(t_phil *phil, int check)
 {
 	while (get_info(phil->data->dead, phil->data->died) == 0)
 	{
 		if (phil->id % 2 != 0)
-			action(phil, "is eating", phil->data->t_eat);
+			check += action(phil, "is eating", phil->data->t_eat);
 		else
 		{
 			if (phil->t_eaten == 0)
 				usleep(1);
-			action(phil, "is eating", phil->data->t_eat);
+			check += action(phil, "is eating", phil->data->t_eat);
 		}
-		if (phil->data->x_eat == phil->t_eaten)
+		if (get_info(phil->data->eat, phil->data->x_eat) == phil->t_eaten)
 		{
 			pthread_mutex_lock(&phil->data->eat);
 			phil->data->eaten++;
 			pthread_mutex_unlock(&phil->data->eat);
 		}
-		action(phil, "is sleeping", phil->data->t_sleep);
+		check += action(phil, "is sleeping", phil->data->t_sleep);
 		if (ft_stop(phil) == 1)
-			return (phil_dead(phil, 1));
+			return (1);
 		write_now(phil, "is thinking");
+		pthread_mutex_lock(&phil->data->w);
+		printf("os philos tem que comer %i e %i/%i comeu\n", get_info(phil->data->eat, phil->data->x_eat), get_info(phil->data->eat, phil->data->eaten), (int)phil->data->n_phil);
+		pthread_mutex_unlock(&phil->data->w);
 	}
+	return (check);
 }
 
 void	*routine(void *anything)
@@ -258,21 +263,11 @@ void	*routine(void *anything)
 		pthread_mutex_lock(&phil->data->time);
 		pthread_mutex_unlock(&phil->data->time);
 	}
-	phil_even(phil);
+	phil_even(phil, 0);
+	pthread_mutex_lock(&phil->data->w);
+	printf("\t%i has eaten %i times--- %i\n", phil->id, phil->t_eaten, get_info(phil->data->eat, phil->data->eaten));
+	pthread_mutex_unlock(&phil->data->w);
 	return (NULL);
-}
-
-void	murder_all(t_data *data, t_phil **head)
-{
-	int i;
-
-	i = 0;
-	while (i < data->n_phil)
-	{
-		pthread_detach(data->phil[i]);
-		i++;
-	}
-	clean_struct(head);
 }
 
 void	create_phils(t_data data)
@@ -296,8 +291,6 @@ void	create_phils(t_data data)
 	while (i < data.n_phil)
 	{
 		pthread_join(data.phil[i], NULL);
-		// if (data.died == 1 || data.eaten == data.x_eat)
-		// 	return (murder_all(&data, &head));
 		i++;
 	}
 	clean_struct(&head);
