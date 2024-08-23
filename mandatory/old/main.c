@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/21 11:39:18 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/22 10:29:43 by mfortuna         ###   ########.fr       */
+/*   Created: 2024/07/31 14:13:55 by mfortuna          #+#    #+#             */
+/*   Updated: 2024/08/21 11:59:03 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ int	phil_dead(t_phil *phil, int code)
 		return (1);}
 	if (code == 1){
 		pthread_mutex_lock(&phil->data->w);
-		printf("%ld\t%i %s\n",nowtime(phil), phil->id, "has died");
+		printf("%ld\t%i %s\n",nowtime(phil), phil->id, "has died");\
 		pthread_mutex_unlock(&phil->data->w);
 	}
 		// just_print(phil, "has died");
@@ -135,8 +135,7 @@ int	phil_dead(t_phil *phil, int code)
 
 int	ft_stop(t_phil *phil)
 {
-	if (get_info(phil->data->dead, phil->data->died) == 1)
-	{
+	if (get_info(phil->data->dead, phil->data->died) == 1){
 		just_print(phil, "\t\t\t ft_stop after info");
 		return (1);
 	}
@@ -145,17 +144,16 @@ int	ft_stop(t_phil *phil)
 	// just_print(phil, "\t\t\t ft_stop after calculate if dead");
 	if (get_info(phil->data->eat, phil->data->x_eat) > 0)
 	{
-		if (get_info(phil->data->eat, phil->data->eaten) >= phil->data->n_phil){
-			just_print(phil, "\t\t\t ft_stop after every one ate");
-			return (phil_dead(phil, 0));}
+		if (get_info(phil->data->eat, phil->data->eaten) >= phil->data->n_phil)
+			return (phil_dead(phil, 0));
 	}
 	// just_print(phil, "\t\t\t ft_stop after every one ate x times");
 	return (0);
 }
 int	just_print(t_phil *phil, char *act)
 {
-	if (get_info(phil->data->dead, phil->data->died) == 1)
-	 	return (1);
+	// if (get_info(phil->data->dead, phil->data->died) == 1)
+	// 	return (1);
 	pthread_mutex_lock(&phil->data->w);
 	printf("%ld\t%i %s\n",nowtime(phil), phil->id, act);
 	pthread_mutex_unlock(&phil->data->w);
@@ -192,13 +190,8 @@ int	new_sleep(t_phil *phil, int time)
 {
 	while (nowtime(phil) < time)
 	{
-		if (get_info(phil->data->dead, phil->data->died) != 0){
-			pthread_mutex_lock(&phil->data->w);
-			printf("%ld\t%i \t\t\t stop in sleep\n",nowtime(phil), phil->id);
-			pthread_mutex_unlock(&phil->data->w);
+		if (get_info(phil->data->dead, phil->data->died) != 0)
 			return (1);
-		}
-			
 	}
 	return(get_info(phil->data->dead, phil->data->died));
 }
@@ -230,8 +223,8 @@ int	action(t_phil *phil, char *act, int time)
 	// just_print(phil, "\t\t\t before sleep");//
 	if (nowtime(phil) + (time / 1000) >= (phil->lastmeal + (phil->data->t_die / 1000)))
 	{
-		new_sleep(phil, (phil->lastmeal + (phil->data->t_die / 1000)));
-		// just_print(phil, "is dead");
+		if (new_sleep(phil, (phil->lastmeal + (phil->data->t_die / 1000))) == 1)
+			return (1);
 		return (phil_dead(phil, 1));
 	}
 	return(new_sleep(phil, (time / 1000) + nowtime(phil)));
@@ -248,14 +241,14 @@ int	phil_ate(t_phil *phil)
 	if (get_info(phil->data->eat, phil->data->x_eat) > 0)
 	{
 		if (get_info(phil->data->eat, phil->data->eaten) >= phil->data->n_phil){
-			just_print(phil, "\t\t\t\t everyone ate");
+			// just_print(phil, "\t\t\t\t everyone ate");
 			return (phil_dead(phil, 0));}
 	}
 	return (get_info(phil->data->dead, phil->data->died));
 }
 int	phil_even(t_phil *phil, int check)
 {
-	while (ft_stop(phil) == 0)
+	while (get_info(phil->data->dead, phil->data->died) == 0)
 	{
 		if (phil->id % 2 != 0)
 		{
