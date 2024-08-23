@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/31 14:13:55 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/21 11:59:03 by mfortuna         ###   ########.fr       */
+/*   Created: 2024/08/21 11:39:18 by mfortuna          #+#    #+#             */
+/*   Updated: 2024/08/23 13:58:33 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,14 +119,13 @@ int	phil_dead(t_phil *phil, int code)
 		return (1);}
 	if (code == 1){
 		pthread_mutex_lock(&phil->data->w);
-		printf("%ld\t%i %s\n",nowtime(phil), phil->id, "has died");\
-		pthread_mutex_unlock(&phil->data->w);
+		printf("%ld\t%i %s\n",nowtime(phil), phil->id, "has died");
+		pthread_mutex_destroy(&phil->data->w);
 	}
-		// just_print(phil, "has died");
 	// just_print(phil, "\t\t\t phil_dead 2");
 	// pthread_mutex_lock(&phil->data->w);
 	pthread_mutex_lock(&phil->data->dead);
-	phil->data->died = 1;
+	memset(&phil->data->died, 1, sizeof(int));
 	pthread_mutex_unlock(&phil->data->dead);
 	// pthread_mutex_lock(&phil->data->w);
 	// just_print(phil, "\t\t\t phil_dead 3");//
@@ -135,7 +134,8 @@ int	phil_dead(t_phil *phil, int code)
 
 int	ft_stop(t_phil *phil)
 {
-	if (get_info(phil->data->dead, phil->data->died) == 1){
+	if (get_info(phil->data->dead, phil->data->died) == 1)
+	{
 		just_print(phil, "\t\t\t ft_stop after info");
 		return (1);
 	}
@@ -144,16 +144,17 @@ int	ft_stop(t_phil *phil)
 	// just_print(phil, "\t\t\t ft_stop after calculate if dead");
 	if (get_info(phil->data->eat, phil->data->x_eat) > 0)
 	{
-		if (get_info(phil->data->eat, phil->data->eaten) >= phil->data->n_phil)
-			return (phil_dead(phil, 0));
+		if (get_info(phil->data->eat, phil->data->eaten) >= phil->data->n_phil){
+			just_print(phil, "\t\t\t ft_stop after every one ate");
+			return (phil_dead(phil, 0));}
 	}
 	// just_print(phil, "\t\t\t ft_stop after every one ate x times");
-	return (0);
+	return (get_info(phil->data->dead, phil->data->died));
 }
 int	just_print(t_phil *phil, char *act)
 {
-	// if (get_info(phil->data->dead, phil->data->died) == 1)
-	// 	return (1);
+	if (ft_stop(phil) == 1)
+	 	return (1);
 	pthread_mutex_lock(&phil->data->w);
 	printf("%ld\t%i %s\n",nowtime(phil), phil->id, act);
 	pthread_mutex_unlock(&phil->data->w);
@@ -184,14 +185,18 @@ int	write_now(t_phil *phil, char *act)
 	}
 	if (just_print(phil, act) == 1)
 		return (1);
-	return (get_info(phil->data->dead, phil->data->died));
+	return (0);
 }
 int	new_sleep(t_phil *phil, int time)
 {
 	while (nowtime(phil) < time)
 	{
-		if (get_info(phil->data->dead, phil->data->died) != 0)
+		if (get_info(phil->data->dead, phil->data->died) != 0){
+			pthread_mutex_lock(&phil->data->w);
+			// printf("%ld\t%i \t\t\t stop in sleep\n",nowtime(phil), phil->id);
+			pthread_mutex_unlock(&phil->data->w);
 			return (1);
+		}
 	}
 	return(get_info(phil->data->dead, phil->data->died));
 }
@@ -216,7 +221,7 @@ int	action(t_phil *phil, char *act, int time)
 		unlock_forks(phil);
 		// just_print(phil, "\t\t\t forks unlocked");//
 		phil->t_eaten++;
-		return (phil->data->died);
+		return (ft_stop(phil));
 	}
 	if (write_now(phil, act) == 1)
 		return (1);
@@ -225,6 +230,7 @@ int	action(t_phil *phil, char *act, int time)
 	{
 		if (new_sleep(phil, (phil->lastmeal + (phil->data->t_die / 1000))) == 1)
 			return (1);
+		// just_print(phil, "is dead");
 		return (phil_dead(phil, 1));
 	}
 	return(new_sleep(phil, (time / 1000) + nowtime(phil)));
@@ -241,14 +247,14 @@ int	phil_ate(t_phil *phil)
 	if (get_info(phil->data->eat, phil->data->x_eat) > 0)
 	{
 		if (get_info(phil->data->eat, phil->data->eaten) >= phil->data->n_phil){
-			// just_print(phil, "\t\t\t\t everyone ate");
+			just_print(phil, "\t\t\t\t everyone ate");
 			return (phil_dead(phil, 0));}
 	}
 	return (get_info(phil->data->dead, phil->data->died));
 }
 int	phil_even(t_phil *phil, int check)
 {
-	while (get_info(phil->data->dead, phil->data->died) == 0)
+	while (ft_stop(phil) == 0)
 	{
 		if (phil->id % 2 != 0)
 		{
@@ -301,45 +307,70 @@ void	*routine(void *anything)
 	return (NULL);
 }
 
-void	create_phils(t_data data)
+void *check_pthread(void *anything)
 {
-	int		i;
-	t_phil	*head;
-	t_phil	*phil;
+	t_data *data;
+	int		check;
+
+	data = (t_data *)anything;
+	check = 0;
+	while (check == 0)
+		check = get_info(data->dead, data->died);
+	return (NULL);
+}
+
+void	create_phils(t_data *data)
+{
+	int			i;
+	t_phil		*head;
+	t_phil		*phil;
+	// pthread_t	check;
 
 	i = 0;
 	head = NULL;
-	create_struct(&head, &data);
+	create_struct(&head, data);
 	phil = head;
 	pthread_mutex_lock(&phil->data->time);
-	while (i < data.n_phil)
+	while (i < data->n_phil)
 	{
-		pthread_create(&data.phil[i], NULL, &routine, phil);
+		pthread_create(&data->phil[i], NULL, &routine, phil);
 		phil = phil->next;
 		i++;
 	}
+	// pthread_create(&check, NULL, &check_pthread, data);
+	// pthread_join(check, NULL);
+	// while (i > 0)
+	// {
+	// 	pthread_mutex_destroy(&data->forks[i]);
+	// 	i--;
+	// }
+	// // pthread_mutex_destroy(&data->w);
+	// pthread_mutex_destroy(&data->dead);
+	// pthread_mutex_destroy(&data->eat);
+	// free(data->forks);
+	// free(data->phil);
 	i = 0;
-	while (i < data.n_phil)
+	while (i < data->n_phil)
 	{
-		pthread_join(data.phil[i], NULL);
+		pthread_join(data->phil[i], NULL);
 		i++;
 	}
 	clean_struct(&head);
 }
 
+
 int	main(int argc, char **argv)
 {
 	t_data			data;
-
 
 	if (argc > 4 && argc < 7)
 	{
 		if (create_data(&data, argc, argv) > 0)
 			return (printf("invalid arguments\n"));
 		data.phil = malloc((data.n_phil + 1) * sizeof(pthread_t));
-		create_phils(data);
-		free(data.forks);
-		free(data.phil);
+		create_phils(&data);
+		// free(data.forks);
+		// free(data.phil);
 		return (0);
 	}
 	return (printf("invalid number of arguments \n"));
