@@ -6,12 +6,13 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 11:25:33 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/30 11:58:31 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/08/30 14:21:42 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../philosophers.h"
 
+int	unlock_forks(t_phil *phil);
 int	just_print(t_phil *phil, char *act);
 int	change_data(t_phil	*phil, t_op code);
 
@@ -159,12 +160,12 @@ int	write_now(t_phil *phil, char *act)
 		}
 		pthread_mutex_lock(phil->l_fork);
 		if (just_print(phil, "has taken a fork") == 1)
-			return (1);
+			return (unlock_forks(phil));
 		if (just_print(phil, act) == 1)
 			return (1);
 		return (0);
 	}
-	if (just_print(phil, act) == 1)
+	else if (just_print(phil, act) == 1)
 		return (1);
 	return (0);
 }
@@ -176,6 +177,7 @@ int	new_sleep(t_phil *phil, int time)
 			return(change_data(phil, DIED));
 		if (get_info(phil, SIM) != 0)
 			return (1);
+		usleep(500);
 	}
 	// printf("%i when to die %ld, now : %ld\n", phil->id, (phil->lastmeal + (phil->data->t_die / 1000)), nowtime(phil));
 	return(get_info(phil, SIM));
@@ -207,7 +209,6 @@ int	action(t_phil *phil, char *act, long time)
 	}
 	if (write_now(phil, act) == 1)
 		return (1);
-	// printf("id: %i | now : %ld | time : %ld | last_meal %ld | t_die %ld\n",phil->id, nowtime(phil), (time / 1000), phil->lastmeal, (phil->data->t_die / 1000));
 	if (nowtime(phil->data->start) + (time / 1000) >= (phil->lastmeal + (phil->data->t_die / 1000)))
 	{
 		if (new_sleep(phil, (phil->lastmeal + (phil->data->t_die / 1000))) == 1)
@@ -236,7 +237,7 @@ int	phil_even(t_phil *phil, int check)
 			return (1);
 		if (action(phil, "is sleeping", phil->data->t_sleep) != 0)
 			return (1);
-		if (action(phil, "is thinking", 1) != 0)
+		if (action(phil, "is thinking", 1000) != 0)
 			return (1);
 	}
 	return (0);
@@ -248,7 +249,7 @@ void	*routine(void *anything)
 
 	phil = (t_phil *)anything;
 	while (get_info(phil, SIM) != 0)
-		usleep(1);
+		usleep(500);
 	if (phil->id == phil->data->n_phil)
 	{
 		if (phil->id == 1)
@@ -323,7 +324,6 @@ void *check_pthread(void *anything)
 	data = (t_data *)anything;
 	current = data->head;
 	gettimeofday(&data->start, NULL);
-	// pthread_mutex_unlock(&data->time);
 	change_data(current, SIM);
 	while (data->sim == 0)
 	{
@@ -345,6 +345,7 @@ void *check_pthread(void *anything)
 			current = current->next;
 		}
 		current = data->head;
+		usleep(500);
 	}
 	return (NULL);
 }
