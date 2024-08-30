@@ -6,14 +6,14 @@
 #    By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/21 11:05:07 by mfortuna          #+#    #+#              #
-#    Updated: 2024/08/13 12:50:52 by mfortuna         ###   ########.fr        #
+#    Updated: 2024/08/30 10:20:52 by mfortuna         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 .INCLUDEDIRS	: /mandatory /mlx /mylibft
 
 CC				= cc
-CFLAGS			= -Wall -Werror -Wextra #-fsanitize=thread
+CFLAGS			= -Wall -Werror -Wextra #-fsanitize=address
 RM				= rm -rf
 NAME			= philo
 MANDATORY		= mandatory/

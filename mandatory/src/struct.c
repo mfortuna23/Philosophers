@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/21 11:38:42 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/27 11:27:39 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/08/28 12:23:19 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,20 @@ t_phil	*create_node(t_data *data, int id)
 	node = malloc(sizeof(t_phil));
 	node->id = id;
 	if (id == 1)
+	{
 		node->r_fork = &data->forks[data->n_phil - 1];
+		node->l_fork = &data->forks[id - 1];
+	}
+	else if (id % 2 == 0)
+	{
+		node->l_fork = &data->forks[id - 2];
+		node->r_fork = &data->forks[id - 1];
+	}
 	else
+	{
 		node->r_fork = &data->forks[id - 2];
-	node->l_fork = &data->forks[id - 1];
+		node->l_fork = &data->forks[id - 1];
+	}
 	node->t_eaten = 0;
 	node->lastmeal = 0;
 	node->data = data;
