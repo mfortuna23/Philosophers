@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 11:26:12 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/30 11:31:27 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/08/30 15:38:06 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,11 +61,32 @@ typedef struct s_phil
 	struct s_data		*data;
 }						t_phil;
 
-void	create_struct(t_phil **head, t_data *data);
-void	add_last(t_phil **head, t_data *data, int id);
-t_phil	*create_node(t_data *data, int id);
-void	clean_struct(t_phil **head);
-void	delete_last(t_phil **head);
-int		ft_strcomp(const char *s1, const char *s2);
-int		ft_stop(t_phil *phil);
+void		create_struct(t_phil **head, t_data *data);
+void		add_last(t_phil **head, t_data *data, int id);
+t_phil		*create_node(t_data *data, int id);
+void		clean_struct(t_phil **head);
+void		delete_last(t_phil **head);
+int			ft_strcomp(const char *s1, const char *s2);
+int			ft_stop(t_phil *phil);
+int			create_data(t_data *data, int argc, char **argv);
+int			mutex_create(t_data *data);
+long int	get_number(char *nbr);
+int			get_info(t_phil *phil, t_op code);
+int			unlock_forks(t_phil *phil);
+int			change_data(t_phil	*phil, t_op code);
+void		*phil_dead(t_phil *phil);
+long int	last_meal(t_phil *phil);
+void		*check_pthread(void *anything);
+void		create_phils(t_data *data);
+int			phil_even(t_phil *phil, int check);
+void		*routine(void *anything);
+int			action(t_phil *phil, char *act, long time);
+int			write_now(t_phil *phil, char *act);
+long int	nowtime(struct timeval start);
+int			just_print(t_phil *phil, char *act);
+int			new_sleep(t_phil *phil, int time);
+int			just_print(t_phil *phil, char *act);
+long int	nowtime(struct timeval start);
+int			sim_continue(t_phil *current, t_data *data);
+int			update_meal(t_phil *phil, long int time);
 #endif
