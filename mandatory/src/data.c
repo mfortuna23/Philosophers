@@ -6,7 +6,7 @@
 /*   By: mfortuna <mfortuna@student.42.pt>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 14:56:08 by mfortuna          #+#    #+#             */
-/*   Updated: 2024/08/30 14:59:14 by mfortuna         ###   ########.fr       */
+/*   Updated: 2024/09/02 11:41:00 by mfortuna         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ long int	get_number(char *nbr)
 	}
 	while (nbr[i])
 	{
-		if (nbr[i] < '0' && nbr[i] > '9')
+		if (nbr[i] < '0' || nbr[i] > '9')
 			return (-1);
 		n = (n * 10) + (nbr[i] - '0');
 		i++;
