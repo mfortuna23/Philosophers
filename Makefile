@@ -27,7 +27,7 @@ MAKE			= make -C
 all: $(NAME) 
 
 $(NAME) :  $(OBJS)
-	$(CC) -g $(CFLAGS) -o $(NAME) $(SRC)
+	$(CC) $(CFLAGS) -g -o $(NAME) $(OBJS)
 	
 $(SRC_M)%.o: %.c
 	$(CC) $(CFLAGS) -I . -c $<
